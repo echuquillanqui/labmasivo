@@ -2,7 +2,7 @@
 <html lang="es"><head><meta charset="utf-8"><title>Resultados de laboratorio</title><style>
 @page { size: A4 portrait; margin: 12mm 10mm 10mm; }
 * { box-sizing: border-box; } body { margin: 0; color: #111; font-family: DejaVu Sans, sans-serif; font-size: 6.2pt; }
-.resultado-paciente { page-break-after: always; }
+.resultado-paciente { width: 100%; page-break-after: always; page-break-inside: avoid; }
 .resultado-paciente:last-child { page-break-after: auto; }
 h1 { margin: 0 0 2mm; text-align: center; font-size: 9pt; letter-spacing: .2px; text-decoration: underline; }
 .datos { width: 100%; margin-bottom: 1mm; border-collapse: collapse; }.datos td { padding: .35mm .7mm; border: 0; }.datos .etiqueta { font-weight: bold; width: 17%; }

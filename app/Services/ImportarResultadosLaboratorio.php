@@ -29,7 +29,7 @@ class ImportarResultadosLaboratorio
         'HVC' => 'hcv', 'ANTICUERPOS HTLV 1 Y 2' => 'htlv_1_2',
     ];
 
-    public function importar(UploadedFile $archivo, string $fechaResultado, string $procedencia): array
+    public function importar(UploadedFile $archivo, string $fechaResultado, string $procedencia, ?UploadedFile $selloDigital = null): array
     {
         if (! class_exists(IOFactory::class)) {
             throw ValidationException::withMessages([
@@ -64,20 +64,25 @@ class ImportarResultadosLaboratorio
 
         $loteUuid = (string) Str::uuid();
         $nombreArchivo = $archivo->getClientOriginalName();
+        $rutaSello = $selloDigital?->store('sellos-digitales', 'public');
         $creadas = 0;
         $actualizadas = 0;
 
-        DB::transaction(function () use ($filas, $fechaResultado, $procedencia, $loteUuid, $nombreArchivo, &$creadas, &$actualizadas) {
+        DB::transaction(function () use ($filas, $fechaResultado, $procedencia, $loteUuid, $nombreArchivo, $rutaSello, &$creadas, &$actualizadas) {
             foreach ($filas as $fila) {
                 $registro = ResultadoLaboratorioImportado::firstOrNew([
                     'fecha_resultado' => $fechaResultado,
                     'procedencia' => $procedencia,
                     'dni' => $fila['dni'],
                 ]);
-                $registro->fill(array_merge($fila, [
+                $datosRegistro = array_merge($fila, [
                     'lote_uuid' => $loteUuid,
                     'archivo_nombre' => $nombreArchivo,
-                ]));
+                ]);
+                if ($rutaSello !== null) {
+                    $datosRegistro['sello_digital'] = $rutaSello;
+                }
+                $registro->fill($datosRegistro);
                 $registro->exists ? $actualizadas++ : $creadas++;
                 $registro->save();
             }

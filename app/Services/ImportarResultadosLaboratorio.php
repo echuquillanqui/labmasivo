@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ResultadoLaboratorioImportado;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -29,7 +30,7 @@ class ImportarResultadosLaboratorio
         'HVC' => 'hcv', 'ANTICUERPOS HTLV 1 Y 2' => 'htlv_1_2',
     ];
 
-    public function importar(UploadedFile $archivo, string $fechaResultado, string $procedencia, ?UploadedFile $selloDigital = null): array
+    public function importar(UploadedFile $archivo, string $fechaResultado, string $procedencia, UploadedFile|string|null $selloDigital = null): array
     {
         if (! class_exists(IOFactory::class)) {
             throw ValidationException::withMessages([
@@ -64,7 +65,9 @@ class ImportarResultadosLaboratorio
 
         $loteUuid = (string) Str::uuid();
         $nombreArchivo = $archivo->getClientOriginalName();
-        $rutaSello = $selloDigital?->store('sellos-digitales', 'public');
+        $rutaSello = $selloDigital instanceof UploadedFile
+            ? $selloDigital->store('sellos-digitales', 'public')
+            : $this->copiarSelloDelUsuario($selloDigital);
         $creadas = 0;
         $actualizadas = 0;
 
@@ -94,6 +97,19 @@ class ImportarResultadosLaboratorio
             'filas_leidas' => count($filas), 'creadas' => $creadas,
             'actualizadas' => $actualizadas, 'errores' => 0, 'mensajes_error' => [],
         ];
+    }
+
+    private function copiarSelloDelUsuario(?string $rutaOriginal): ?string
+    {
+        if (! $rutaOriginal || ! Storage::disk('public')->exists($rutaOriginal)) {
+            return null;
+        }
+
+        $extension = pathinfo($rutaOriginal, PATHINFO_EXTENSION);
+        $rutaCopia = 'sellos-digitales/'.Str::uuid().($extension ? '.'.$extension : '');
+        Storage::disk('public')->copy($rutaOriginal, $rutaCopia);
+
+        return $rutaCopia;
     }
 
     private function leerEncabezados(Worksheet $hoja): array

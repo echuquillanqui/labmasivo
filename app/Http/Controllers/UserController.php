@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -22,7 +23,9 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        User::create($this->validar($request));
+        $datos = $this->validar($request);
+        $datos['sello_digital'] = $request->file('sello_digital')?->store('sellos-usuarios', 'public');
+        User::create($datos);
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario creado correctamente.');
     }
@@ -34,7 +37,18 @@ class UserController extends Controller
 
     public function update(Request $request, User $usuario)
     {
-        $usuario->update($this->validar($request, $usuario));
+        $datos = $this->validar($request, $usuario);
+        $selloAnterior = $usuario->sello_digital;
+
+        if ($request->hasFile('sello_digital')) {
+            $datos['sello_digital'] = $request->file('sello_digital')->store('sellos-usuarios', 'public');
+        }
+
+        $usuario->update($datos);
+
+        if (isset($datos['sello_digital']) && $selloAnterior) {
+            Storage::disk('public')->delete($selloAnterior);
+        }
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario actualizado correctamente.');
     }
@@ -45,7 +59,11 @@ class UserController extends Controller
             return back()->with('error', 'No puedes eliminar tu propio usuario mientras tienes la sesión iniciada.');
         }
 
+        $sello = $usuario->sello_digital;
         $usuario->delete();
+        if ($sello) {
+            Storage::disk('public')->delete($sello);
+        }
 
         return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente.');
     }
@@ -56,6 +74,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($usuario)],
             'password' => [$usuario ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
+            'sello_digital' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
         ]);
 
         if (blank($datos['password'] ?? null)) {

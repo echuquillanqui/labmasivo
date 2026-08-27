@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class UsuariosTest extends TestCase
@@ -52,5 +54,47 @@ class UsuariosTest extends TestCase
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('users', ['id' => $usuario->id]);
+    }
+
+    public function test_se_puede_cargar_y_reemplazar_el_sello_digital_de_un_usuario(): void
+    {
+        Storage::fake('public');
+        $administrador = User::factory()->create();
+
+        $this->actingAs($administrador)->post('/usuarios', [
+            'name' => 'Usuario con sello',
+            'email' => 'sello@example.com',
+            'password' => 'clave-segura',
+            'password_confirmation' => 'clave-segura',
+            'sello_digital' => UploadedFile::fake()->image('sello.png'),
+        ])->assertRedirect(route('usuarios.index'));
+
+        $usuario = User::where('email', 'sello@example.com')->firstOrFail();
+        $selloAnterior = $usuario->sello_digital;
+        $this->assertNotNull($selloAnterior);
+        Storage::disk('public')->assertExists($selloAnterior);
+
+        $this->actingAs($administrador)->put(route('usuarios.update', $usuario), [
+            'name' => $usuario->name,
+            'email' => $usuario->email,
+            'password' => '',
+            'password_confirmation' => '',
+            'sello_digital' => UploadedFile::fake()->image('sello-nuevo.jpg'),
+        ])->assertRedirect(route('usuarios.index'));
+
+        $selloNuevo = $usuario->fresh()->sello_digital;
+        $this->assertNotSame($selloAnterior, $selloNuevo);
+        Storage::disk('public')->assertMissing($selloAnterior);
+        Storage::disk('public')->assertExists($selloNuevo);
+    }
+
+    public function test_el_formulario_del_crud_muestra_el_campo_para_el_sello(): void
+    {
+        $administrador = User::factory()->create();
+
+        $this->actingAs($administrador)->get(route('usuarios.create'))
+            ->assertOk()
+            ->assertSee('Sello digital')
+            ->assertSee('name="sello_digital"', false);
     }
 }

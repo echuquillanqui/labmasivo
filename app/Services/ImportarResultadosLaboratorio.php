@@ -31,6 +31,12 @@ class ImportarResultadosLaboratorio
 
     public function importar(UploadedFile $archivo, string $fechaResultado, string $procedencia): array
     {
+        if (! class_exists(IOFactory::class)) {
+            throw ValidationException::withMessages([
+                'archivo' => 'No está instalada la librería para leer Excel. En la carpeta del proyecto ejecute: composer require phpoffice/phpspreadsheet:^2.1 --with-all-dependencies',
+            ]);
+        }
+
         $libro = IOFactory::load($archivo->getRealPath());
         if (! in_array(self::HOJA, $libro->getSheetNames(), true)) {
             throw ValidationException::withMessages(['archivo' => 'El archivo no contiene la hoja «'.self::HOJA.'».']);

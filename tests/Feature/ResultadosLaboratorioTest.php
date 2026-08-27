@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\ResultadoLaboratorioImportado;
 use App\Models\User;
+use App\Services\ImportarResultadosLaboratorio;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ResultadosLaboratorioTest extends TestCase
@@ -46,6 +49,27 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringContainsString('Prueba de Sífilis – Anticuerpo No Treponémico (RPR), cualitativo', $html);
         $this->assertStringContainsString('.resultado-paciente:last-child { page-break-after: auto; }', $html);
         $this->assertStringContainsString('&gt; 2000', $html);
+    }
+
+    public function test_la_importacion_explica_como_instalar_el_lector_si_no_esta_disponible(): void
+    {
+        if (class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+            $this->markTestSkipped('PhpSpreadsheet está instalado en este entorno.');
+        }
+
+        try {
+            app(ImportarResultadosLaboratorio::class)->importar(
+                UploadedFile::fake()->create('resultados.xls', 1),
+                '2026-08-27',
+                'HEDIAL'
+            );
+            $this->fail('La importación debía informar que falta PhpSpreadsheet.');
+        } catch (ValidationException $exception) {
+            $this->assertStringContainsString(
+                'composer require phpoffice/phpspreadsheet',
+                $exception->errors()['archivo'][0]
+            );
+        }
     }
 
     private function datos(): array

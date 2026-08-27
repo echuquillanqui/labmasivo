@@ -6,6 +6,7 @@ use App\Models\ResultadoLaboratorioImportado;
 use App\Services\ImportarResultadosLaboratorio;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
 class ResultadoLaboratorioImportadoController extends Controller
 {
@@ -69,6 +70,10 @@ class ResultadoLaboratorioImportadoController extends Controller
 
     private function crearPdf($resultados, string $nombre)
     {
+        if (! class_exists(Pdf::class)) {
+            throw new ServiceUnavailableHttpException(null, 'No está instalada la librería PDF. Ejecute: composer require barryvdh/laravel-dompdf:^2.2 --with-all-dependencies');
+        }
+
         return Pdf::loadView('resultados-laboratorio.pdf', [
             'resultados' => $resultados,
             'analisis' => collect(config('laboratorios.analisis'))->sortBy('orden')->groupBy('area'),

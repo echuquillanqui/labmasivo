@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\ImportarResultadosLaboratorio;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -49,6 +50,39 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringContainsString('Prueba de Sífilis – Anticuerpo No Treponémico (RPR), cualitativo', $html);
         $this->assertStringContainsString('.resultado-paciente:last-child { page-break-after: auto; }', $html);
         $this->assertStringContainsString('&gt; 2000', $html);
+        $this->assertStringContainsString('@page { size: A4 portrait; margin: 25mm 13mm 13mm; }', $html);
+        $this->assertStringContainsString('VARONES: 42.0 - 54.0 / MUJERES: 37.0 - 48.0', $html);
+        $this->assertStringContainsString('Menor 0.90: negativo / Mayor 1: positivo / 0.90 - 0.99: indeterminado', $html);
+        $this->assertNull($resultado->selloDigitalDataUri());
+        $this->assertStringNotContainsString('alt="Sello digital"', $html);
+    }
+
+    public function test_la_vista_pdf_incrusta_el_sello_digital_del_resultado(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('sellos-digitales/sello.png', 'imagen-de-prueba');
+        $resultado = ResultadoLaboratorioImportado::create(array_merge($this->datos(), [
+            'sello_digital' => 'sellos-digitales/sello.png',
+        ]));
+
+        $html = view('resultados-laboratorio.pdf', [
+            'resultados' => collect([$resultado]),
+            'analisis' => collect(config('laboratorios.analisis'))->sortBy('orden')->groupBy('area'),
+        ])->render();
+
+        $this->assertStringContainsString('data:', $html);
+        $this->assertStringContainsString(base64_encode('imagen-de-prueba'), $html);
+        $this->assertStringContainsString('alt="Sello digital"', $html);
+    }
+
+    public function test_el_formulario_de_importacion_acepta_un_sello_digital(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get('/resultados-laboratorio/importar')
+            ->assertOk()
+            ->assertSee('Sello digital')
+            ->assertSee('Opcional. Se admite PNG, JPG o WEBP, máximo 2 MB.')
+            ->assertSee('image/png,image/jpeg,image/webp', false);
     }
 
     public function test_la_importacion_explica_como_instalar_el_lector_si_no_esta_disponible(): void

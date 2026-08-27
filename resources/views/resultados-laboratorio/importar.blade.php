@@ -16,6 +16,7 @@
                 <div class="col-md-5"><label for="archivo" class="form-label">Archivo Excel</label><input id="archivo" name="archivo" type="file" accept=".xls,.xlsx" class="form-control" required><div class="form-text">Se importará únicamente la hoja “PARA LABORATORIO”.</div></div>
                 <div class="col-md-3"><label for="fecha_resultado" class="form-label">Fecha del resultado</label><input id="fecha_resultado" name="fecha_resultado" type="date" value="{{ old('fecha_resultado') }}" class="form-control" required></div>
                 <div class="col-md-4"><label for="procedencia" class="form-label">Procedencia</label><input id="procedencia" name="procedencia" maxlength="150" value="{{ old('procedencia') }}" class="form-control" required></div>
+                <div class="col-md-5"><label for="sello_digital" class="form-label">Sello digital</label><input id="sello_digital" name="sello_digital" type="file" accept="image/png,image/jpeg,image/webp" class="form-control"><div class="form-text">Opcional. Se admite PNG, JPG o WEBP, máximo 2 MB.</div></div>
             </div>
             <button class="btn btn-primary mt-4" type="submit">Importar resultados</button>
         </form>

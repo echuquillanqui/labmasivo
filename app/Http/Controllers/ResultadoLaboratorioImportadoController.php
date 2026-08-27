@@ -34,8 +34,14 @@ class ResultadoLaboratorioImportadoController extends Controller
             'archivo' => ['required', 'file', 'mimes:xls,xlsx', 'max:20480'],
             'fecha_resultado' => ['required', 'date'],
             'procedencia' => ['required', 'string', 'max:150'],
+            'sello_digital' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
         ]);
-        $resumen = $importador->importar($request->file('archivo'), $datos['fecha_resultado'], trim($datos['procedencia']));
+        $resumen = $importador->importar(
+            $request->file('archivo'),
+            $datos['fecha_resultado'],
+            trim($datos['procedencia']),
+            $request->file('sello_digital')
+        );
 
         return redirect()->route('resultados-laboratorio.index', ['lote_uuid' => $resumen['lote_uuid']])
             ->with('resumen_importacion', $resumen)->with('success', 'La importación terminó correctamente.');

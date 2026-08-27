@@ -51,6 +51,7 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringContainsString('.resultado-paciente:last-child { page-break-after: auto; }', $html);
         $this->assertStringContainsString('&gt; 2000', $html);
         $this->assertStringContainsString('@page { size: A4 portrait; margin: 12mm 10mm 10mm; }', $html);
+        $this->assertStringContainsString('.resultado-paciente { width: 100%; page-break-after: always; page-break-inside: avoid; }', $html);
         $this->assertStringContainsString('font-size: 6.2pt;', $html);
         $this->assertStringNotContainsString('Firma y sello', $html);
         $this->assertStringNotContainsString('position: absolute', $html);
@@ -58,6 +59,24 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringContainsString('Menor 0.90: negativo / Mayor 1: positivo / 0.90 - 0.99: indeterminado', $html);
         $this->assertNull($resultado->selloDigitalDataUri());
         $this->assertStringNotContainsString('alt="Sello digital"', $html);
+    }
+
+    public function test_la_impresion_en_bloque_conserva_una_pagina_con_margenes_por_resultado(): void
+    {
+        $primero = ResultadoLaboratorioImportado::create($this->datos());
+        $segundo = ResultadoLaboratorioImportado::create(array_merge($this->datos(), [
+            'dni' => '00999999',
+            'nombres_apellidos' => 'SEGUNDO PACIENTE',
+        ]));
+
+        $html = view('resultados-laboratorio.pdf', [
+            'resultados' => collect([$primero, $segundo]),
+            'analisis' => collect(config('laboratorios.analisis'))->sortBy('orden')->groupBy('area'),
+        ])->render();
+
+        $this->assertStringContainsString('@page { size: A4 portrait; margin: 12mm 10mm 10mm; }', $html);
+        $this->assertStringContainsString('page-break-inside: avoid;', $html);
+        $this->assertSame(2, substr_count($html, '<div class="resultado-paciente">'));
     }
 
     public function test_la_vista_pdf_incrusta_el_sello_digital_del_resultado(): void

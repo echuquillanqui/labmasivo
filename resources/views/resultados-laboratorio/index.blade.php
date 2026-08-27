@@ -24,6 +24,16 @@
         <div class="col-lg-2"><input name="nombres" value="{{ request('nombres') }}" class="form-control" placeholder="Nombres y apellidos"></div>
         <div class="col-lg-1 d-grid"><button class="btn btn-outline-primary">Filtrar</button></div>
     </div></form>
+    @if(request('lote_uuid'))
+        <div class="card card-body mb-3">
+                <form method="POST" action="{{ route('resultados-laboratorio.lote.sello', request('lote_uuid')) }}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                    @csrf
+                    <div class="col-md-6"><label for="sello_digital" class="form-label">Subir o reemplazar sello digital del lote</label><input id="sello_digital" name="sello_digital" type="file" accept="image/png,image/jpeg,image/webp" class="form-control @error('sello_digital') is-invalid @enderror" required>@error('sello_digital')<div class="invalid-feedback">{{ $message }}</div>@enderror</div>
+                    <div class="col-md-auto"><button class="btn btn-primary">Guardar sello</button></div>
+                    <div class="col-12 form-text">El sello se aplicará a todos los resultados de este lote. PNG, JPG o WEBP, máximo 2 MB.</div>
+                </form>
+        </div>
+    @endif
     <form method="POST" action="{{ route('resultados-laboratorio.pdf-seleccionados') }}" target="_blank">@csrf
         <div class="d-flex flex-wrap gap-2 mb-2">
             <button type="button" id="seleccionar-todos" class="btn btn-outline-secondary btn-sm">Seleccionar todos</button>

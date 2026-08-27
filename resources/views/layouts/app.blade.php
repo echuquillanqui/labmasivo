@@ -32,6 +32,7 @@
                     <ul class="navbar-nav me-auto">
                         @auth
                             <li class="nav-item"><a class="nav-link" href="{{ route('resultados-laboratorio.index') }}">Resultados de laboratorio</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{{ route('usuarios.index') }}">Usuarios</a></li>
                         @endauth
                     </ul>
 

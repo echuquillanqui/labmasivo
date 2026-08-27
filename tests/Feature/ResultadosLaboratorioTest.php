@@ -80,6 +80,23 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringNotContainsString('Firma y sello', $html);
     }
 
+    public function test_la_vista_pdf_usa_el_sello_del_usuario_si_el_resultado_no_tiene_uno(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('sellos-usuarios/sello.png', 'sello-del-usuario');
+        $usuario = User::factory()->create(['sello_digital' => 'sellos-usuarios/sello.png']);
+        $resultado = ResultadoLaboratorioImportado::create($this->datos());
+
+        $html = view('resultados-laboratorio.pdf', [
+            'resultados' => collect([$resultado]),
+            'analisis' => collect(config('laboratorios.analisis'))->sortBy('orden')->groupBy('area'),
+            'selloUsuario' => $usuario->selloDigitalDataUri(),
+        ])->render();
+
+        $this->assertStringContainsString(base64_encode('sello-del-usuario'), $html);
+        $this->assertStringContainsString('alt="Sello digital"', $html);
+    }
+
     public function test_el_formulario_de_importacion_acepta_un_sello_digital(): void
     {
         $this->actingAs(User::factory()->create())

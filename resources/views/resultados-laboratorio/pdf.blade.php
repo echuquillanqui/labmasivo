@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><title>Resultados de laboratorio</title><style>
-@page { size: A4 portrait; margin: 35mm 18mm 18mm; }
+@page { size: A4 portrait; margin: 12mm 10mm 10mm; }
 * { box-sizing: border-box; } body { margin: 0; color: #111; font-family: DejaVu Sans, sans-serif; font-size: 6.2pt; }
 .resultado-paciente { page-break-after: always; }
 .resultado-paciente:last-child { page-break-after: auto; }
@@ -27,7 +27,7 @@ h2 { font-size: 7pt; text-align: center; text-transform: uppercase; margin: 1mm 
         @endforeach
         </tbody></table>
     @endforeach
-    @if($sello = $resultado->selloDigitalDataUri())<div class="sello"><img src="{{ $sello }}" alt="Sello digital"></div>@endif
+    @if($sello = $resultado->selloDigitalDataUri() ?? ($selloUsuario ?? null))<div class="sello"><img src="{{ $sello }}" alt="Sello digital"></div>@endif
 </div>
 @endforeach
 </body></html>

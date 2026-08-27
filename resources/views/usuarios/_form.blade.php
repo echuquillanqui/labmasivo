@@ -19,4 +19,15 @@
         <label for="password_confirmation" class="form-label">Confirmar contraseña</label>
         <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" {{ isset($usuario) ? '' : 'required' }} autocomplete="new-password">
     </div>
+    <div class="col-md-6">
+        <label for="sello_digital" class="form-label">Sello digital</label>
+        <input id="sello_digital" name="sello_digital" type="file" accept="image/png,image/jpeg,image/webp" class="form-control @error('sello_digital') is-invalid @enderror">
+        <div class="form-text">
+            PNG, JPG o WEBP, máximo 2 MB.
+            @if (isset($usuario) && $usuario->sello_digital)
+                Ya existe un sello cargado; selecciona otro archivo solo para reemplazarlo.
+            @endif
+        </div>
+        @error('sello_digital')<div class="invalid-feedback">{{ $message }}</div>@enderror
+    </div>
 </div>

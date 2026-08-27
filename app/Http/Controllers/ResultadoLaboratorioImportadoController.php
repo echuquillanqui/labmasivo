@@ -41,7 +41,7 @@ class ResultadoLaboratorioImportadoController extends Controller
             $request->file('archivo'),
             $datos['fecha_resultado'],
             trim($datos['procedencia']),
-            $request->file('sello_digital')
+            $request->file('sello_digital') ?? $request->user()->sello_digital
         );
 
         return redirect()->route('resultados-laboratorio.index', ['lote_uuid' => $resumen['lote_uuid']])

@@ -50,7 +50,10 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringContainsString('Prueba de Sífilis – Anticuerpo No Treponémico (RPR), cualitativo', $html);
         $this->assertStringContainsString('.resultado-paciente:last-child { page-break-after: auto; }', $html);
         $this->assertStringContainsString('&gt; 2000', $html);
-        $this->assertStringContainsString('@page { size: A4 portrait; margin: 25mm 13mm 13mm; }', $html);
+        $this->assertStringContainsString('@page { size: A4 portrait; margin: 12mm 10mm 10mm; }', $html);
+        $this->assertStringContainsString('font-size: 6.2pt;', $html);
+        $this->assertStringNotContainsString('Firma y sello', $html);
+        $this->assertStringNotContainsString('position: absolute', $html);
         $this->assertStringContainsString('VARONES: 42.0 - 54.0 / MUJERES: 37.0 - 48.0', $html);
         $this->assertStringContainsString('Menor 0.90: negativo / Mayor 1: positivo / 0.90 - 0.99: indeterminado', $html);
         $this->assertNull($resultado->selloDigitalDataUri());
@@ -73,6 +76,8 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertStringContainsString('data:', $html);
         $this->assertStringContainsString(base64_encode('imagen-de-prueba'), $html);
         $this->assertStringContainsString('alt="Sello digital"', $html);
+        $this->assertStringContainsString('.sello { margin-top: 1mm;', $html);
+        $this->assertStringNotContainsString('Firma y sello', $html);
     }
 
     public function test_el_formulario_de_importacion_acepta_un_sello_digital(): void

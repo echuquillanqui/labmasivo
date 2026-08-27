@@ -105,6 +105,7 @@ class ResultadoLaboratorioImportadoController extends Controller
         return Pdf::loadView('resultados-laboratorio.pdf', [
             'resultados' => $resultados,
             'analisis' => collect(config('laboratorios.analisis'))->sortBy('orden')->groupBy('area'),
+            'selloUsuario' => auth()->user()->selloDigitalDataUri(),
         ])->setPaper('a4', 'portrait')->stream($nombre);
     }
 }

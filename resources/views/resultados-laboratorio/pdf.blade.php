@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><title>Resultados de laboratorio</title><style>
-@page { size: A4 portrait; margin: 12mm 10mm 10mm; }
+@page { size: A4 portrait; margin: 35mm 18mm 18mm; }
 * { box-sizing: border-box; } body { margin: 0; color: #111; font-family: DejaVu Sans, sans-serif; font-size: 6.2pt; }
 .resultado-paciente { page-break-after: always; }
 .resultado-paciente:last-child { page-break-after: auto; }

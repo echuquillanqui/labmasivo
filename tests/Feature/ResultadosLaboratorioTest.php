@@ -90,6 +90,25 @@ class ResultadosLaboratorioTest extends TestCase
             ->assertSee('image/png,image/jpeg,image/webp', false);
     }
 
+    public function test_se_puede_subir_un_sello_para_todos_los_resultados_de_un_lote(): void
+    {
+        Storage::fake('public');
+        $primero = ResultadoLaboratorioImportado::create($this->datos());
+        $segundo = ResultadoLaboratorioImportado::create(array_merge($this->datos(), [
+            'dni' => '00999999',
+        ]));
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+
+        $this->actingAs(User::factory()->create())->post(
+            route('resultados-laboratorio.lote.sello', $primero->lote_uuid),
+            ['sello_digital' => UploadedFile::fake()->createWithContent('sello.png', $png)]
+        )->assertRedirect()->assertSessionHas('success');
+
+        $this->assertNotNull($primero->fresh()->sello_digital);
+        $this->assertSame($primero->fresh()->sello_digital, $segundo->fresh()->sello_digital);
+        Storage::disk('public')->assertExists($primero->fresh()->sello_digital);
+    }
+
     public function test_la_importacion_explica_como_instalar_el_lector_si_no_esta_disponible(): void
     {
         if (class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {

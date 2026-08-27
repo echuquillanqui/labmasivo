@@ -6,6 +6,7 @@ use App\Models\ResultadoLaboratorioImportado;
 use App\Services\ImportarResultadosLaboratorio;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 
 class ResultadoLaboratorioImportadoController extends Controller
@@ -64,6 +65,27 @@ class ResultadoLaboratorioImportadoController extends Controller
         abort_if($resultados->isEmpty(), 404);
 
         return $this->crearPdf($resultados, 'resultados-seleccionados.pdf');
+    }
+
+    public function actualizarSelloLote(Request $request, string $loteUuid)
+    {
+        $datos = $request->validate([
+            'sello_digital' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+        ]);
+        $resultados = ResultadoLaboratorioImportado::where('lote_uuid', $loteUuid)->get();
+        abort_if($resultados->isEmpty(), 404);
+
+        $sellosAnteriores = $resultados->pluck('sello_digital')->filter()->unique();
+        $rutaSello = $datos['sello_digital']->store('sellos-digitales', 'public');
+        ResultadoLaboratorioImportado::where('lote_uuid', $loteUuid)->update(['sello_digital' => $rutaSello]);
+
+        foreach ($sellosAnteriores as $selloAnterior) {
+            if (! ResultadoLaboratorioImportado::where('sello_digital', $selloAnterior)->exists()) {
+                Storage::disk('public')->delete($selloAnterior);
+            }
+        }
+
+        return back()->with('success', 'Sello digital actualizado para todo el lote.');
     }
 
     public function pdfLote(string $loteUuid)

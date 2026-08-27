@@ -13,6 +13,7 @@ h2 { font-size: 7pt; text-align: center; text-transform: uppercase; margin: 1mm 
 .resultados .nombre { width: 47%; }.resultados .valor { width: 16%; text-align: center; }.resultados .unidad { width: 13%; text-align: center; }.resultados .referencia { width: 24%; text-align: center; }
 .subtitulo td { background: #eeeeee; font-weight: bold; }.sello { margin-top: 1mm; text-align: center; page-break-inside: avoid; }.sello img { display: block; margin: 0 auto; max-width: 45mm; max-height: 20mm; }
 </style></head><body>
+
 @foreach($resultados as $resultado)
 <div class="resultado-paciente">
     <h1>RESULTADOS DE LABORATORIO</h1>

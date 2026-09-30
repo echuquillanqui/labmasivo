@@ -19,13 +19,20 @@ h2 { font-size: 7pt; text-align: center; text-transform: uppercase; margin: 1mm 
     <h1>RESULTADOS DE LABORATORIO</h1>
     <table class="datos"><tr><td class="etiqueta">PACIENTE:</td><td colspan="3">{{ $resultado->nombres_apellidos }}</td></tr><tr><td class="etiqueta">DNI:</td><td>{{ $resultado->dni }}</td><td class="etiqueta">FECHA:</td><td>{{ $resultado->fecha_resultado->format('d/m/Y') }}</td></tr><tr><td class="etiqueta">PROCEDENCIA:</td><td colspan="3">{{ $resultado->procedencia }}</td></tr></table>
     @foreach($analisis as $area => $items)
+        @php
+            $itemsConResultado = collect($items)->filter(function ($item) use ($resultado) {
+                return empty($item['encabezado'])
+                    && filled($resultado->{$item['campo']});
+            });
+        @endphp
+        @if($itemsConResultado->isNotEmpty())
         <h2>{{ $area }}</h2>
         <table class="resultados"><thead><tr><th class="nombre">ANÁLISIS</th><th class="valor">RESULTADO</th><th class="unidad">UNIDAD</th><th class="referencia">VALORES DE REFERENCIA</th></tr></thead><tbody>
-        @foreach($items as $item)
-            @if(!empty($item['encabezado']))<tr class="subtitulo"><td colspan="4">{{ $item['nombre'] }}</td></tr>
-            @else<tr><td>{{ $item['nombre'] }}</td><td class="valor">{{ $resultado->{$item['campo']} }}</td><td class="unidad">{{ $item['unidad'] }}</td><td class="referencia">{{ $item['referencia'] }}</td></tr>@endif
+        @foreach($itemsConResultado as $item)
+            <tr><td>{{ $item['nombre'] }}</td><td class="valor">{{ $resultado->{$item['campo']} }}</td><td class="unidad">{{ $item['unidad'] }}</td><td class="referencia">{{ $item['referencia'] }}</td></tr>
         @endforeach
         </tbody></table>
+        @endif
     @endforeach
     @if($sello = $resultado->selloDigitalDataUri() ?? ($selloUsuario ?? null))<div class="sello"><img src="{{ $sello }}" alt="Sello digital"></div>@endif
 </div>

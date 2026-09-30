@@ -79,6 +79,25 @@ class ResultadosLaboratorioTest extends TestCase
         $this->assertSame(2, substr_count($html, '<div class="resultado-paciente">'));
     }
 
+    public function test_la_vista_pdf_solo_muestra_los_examenes_que_tienen_resultado(): void
+    {
+        $resultado = ResultadoLaboratorioImportado::create(array_merge($this->datos(), [
+            'hto' => null,
+            'hb' => '   ',
+            'upre' => '0',
+        ]));
+
+        $html = view('resultados-laboratorio.pdf', [
+            'resultados' => collect([$resultado]),
+            'analisis' => collect(config('laboratorios.analisis'))->sortBy('orden')->groupBy('area'),
+        ])->render();
+
+        $this->assertStringNotContainsString('HEMATOCRITO', $html);
+        $this->assertStringNotContainsString('HEMOGLOBINA', $html);
+        $this->assertStringContainsString('UREA PRE', $html);
+        $this->assertMatchesRegularExpression('/UREA PRE<\/td><td class="valor">0<\/td>/', $html);
+    }
+
     public function test_la_vista_pdf_incrusta_el_sello_digital_del_resultado(): void
     {
         Storage::fake('public');
